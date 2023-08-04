@@ -49,7 +49,7 @@ const Path = struct {
 //
 // Please fill in the body of this function!
 fn makePath(comptime from: *Place, comptime to: *Place, comptime dist: u8) Path {
-    var place: Path = Path {
+    var place: Path = Path{
         .from = from,
         .to = to,
         .dist = dist,
