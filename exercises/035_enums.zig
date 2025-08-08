@@ -20,7 +20,7 @@
 const std = @import("std");
 
 // Please complete the enum!
-const Ops = enum { ??? };
+const Ops = enum { inc, pow, dec };
 
 pub fn main() void {
     const operations = [_]Ops{
@@ -46,6 +46,8 @@ pub fn main() void {
                 current_value *= current_value;
             },
             // No "else" needed! Why is that?
+            // -> because the switch is now exaustive
+            // (it covers all of the Ops enums)
         }
 
         std.debug.print("{} ", .{current_value});
