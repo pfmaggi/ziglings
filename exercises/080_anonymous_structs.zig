@@ -54,7 +54,7 @@ pub fn main() void {
         .radius = 15,
     };
 
-    const circle2 = comptime Circle(f32){
+    const circle2 = Circle(f32){
         .center_x = 25.234,
         .center_y = 70.999,
         .radius = 15.714,
