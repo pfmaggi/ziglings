@@ -14,14 +14,19 @@ const std = @import("std");
 // You can find more information at:
 // https://ziglang.org/documentation/master/#Inferred-Error-Sets
 //
-pub fn main() !void {
-    // We get a Writer for Standard Out so we can print() to it.
-    var stdout = std.fs.File.stdout().writer(&.{});
+pub fn main(init: std.process.Init) !void {
+    // Instance for input/output operations; we will learn more about this later.
+    const io = init.io;
+
+    // We get a Writer for Standard Out...
+    var stdout_writer = std.Io.File.stdout().writer(io, &.{});
+    // ...and extract its interface so we can print() to it.
+    const stdout = &stdout_writer.interface;
 
     // Unlike std.debug.print(), the Standard Out writer can fail
     // with an error. We don't care _what_ the error is, we want
     // to be able to pass it up as a return value of main().
     //
     // We just learned of a single statement which can accomplish this.
-    try stdout.interface.print("Hello world!\n", .{});
+    try stdout.print("Hello world!\n", .{});
 }
