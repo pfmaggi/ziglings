@@ -15,7 +15,7 @@ const print = std.debug.print;
 //     1) Getting Started
 //     2) Version Changes
 comptime {
-    const required_zig = "0.16.0-dev.2075";
+    const required_zig = "0.16.0-dev.2471";
     const current_zig = builtin.zig_version;
     const min_zig = std.SemanticVersion.parse(required_zig) catch unreachable;
     if (current_zig.order(min_zig) == .lt) {
@@ -128,23 +128,13 @@ pub fn build(b: *Build) !void {
     if (!validate_exercises()) std.process.exit(2);
 
     use_color_escapes = false;
-    if (try std.Io.File.stderr().supportsAnsiEscapeCodes(io)) {
+    const stderr = std.Io.File.stderr();
+    if (try stderr.supportsAnsiEscapeCodes(io)) {
         use_color_escapes = true;
     } else if (builtin.os.tag == .windows) {
-        const w32 = struct {
-            const DWORD = std.os.windows.DWORD;
-            const ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
-            const STD_ERROR_HANDLE: DWORD = @bitCast(@as(i32, -12));
-            const GetStdHandle = std.os.windows.kernel32.GetStdHandle;
-            const GetConsoleMode = std.os.windows.kernel32.GetConsoleMode;
-            const SetConsoleMode = std.os.windows.kernel32.SetConsoleMode;
-        };
-        const handle = w32.GetStdHandle(w32.STD_ERROR_HANDLE).?;
-        var mode: w32.DWORD = 0;
-        if (w32.GetConsoleMode(handle, &mode) != 0) {
-            mode |= w32.ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            use_color_escapes = w32.SetConsoleMode(handle, mode) != 0;
-        }
+        if (stderr.enableAnsiEscapeCodes(io)) {
+            use_color_escapes = true;
+        } else |_| {}
     }
 
     if (use_color_escapes) {
@@ -397,9 +387,8 @@ const ZiglingStep = struct {
 
         const result = Process.run(b.allocator, io, .{
             .argv = &.{exe_path},
-            .cwd = b.build_root.path.?,
-            .cwd_dir = b.build_root.handle,
-            .max_output_bytes = max_output_bytes,
+            .cwd = .{ .path = b.build_root.path.? },
+            .stdout_limit = .limited(max_output_bytes),
         }) catch |err| {
             return self.step.fail("unable to spawn {s}: {s}", .{
                 exe_path, @errorName(err),
@@ -1287,7 +1276,7 @@ const exercises = [_]Exercise{
         \\Max difference (new fn): 0.014
         ,
     },
-    .{ .main_file = "110_quiz9.zig", .output = 
+    .{ .main_file = "110_quiz9.zig", .output =
     \\Toggle pins with XOR on PORTB
     \\-----------------------------
     \\  1100 // (initial state of PORTB)
